@@ -80,7 +80,7 @@
         reference/pose
         reference/setpoint
         reference/flatsetpoint
-        trajectory_publisher/lap_completed
+        trajectory_publisher/info
         trajectory_publisher/trajectory
         geometric_controller/path
         command/bodyrate_command"

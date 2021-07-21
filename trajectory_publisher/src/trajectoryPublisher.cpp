@@ -47,7 +47,7 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   flatreferencePub_ = nh_.advertise<controller_msgs::FlatTarget>("reference/flatsetpoint", 1);
   rawreferencePub_ = nh_.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 1);
   global_rawreferencePub_ = nh_.advertise<mavros_msgs::GlobalPositionTarget>("mavros/setpoint_raw/global", 1);
-  lapCompletedPub_ = nh_.advertise<std_msgs::Int32>("trajectory_publisher/lap_completed", 1);
+  trajectoryInfoPub = nh_.advertise<trajectory_publisher::TrajectoryInfo>("trajectory_publisher/info", 1);
   motionselectorSub_ =
       nh_.subscribe("trajectory_publisher/motionselector", 1, &trajectoryPublisher::motionselectorCallback, this,
                     ros::TransportHints().tcpNoDelay());
@@ -117,6 +117,7 @@ void trajectoryPublisher::dynamicReconfigureCallback(trajectory_publisher::Traje
   {
     velocity_scaler_ = config.velocity_scaler;
     ROS_INFO("Reconfigure request : velocity_scaler = %.2f ", config.velocity_scaler);
+    pubTrajectoryInfo();
   }
 }
 
@@ -134,12 +135,13 @@ void trajectoryPublisher::updateReference() {
   // Keep track of laps flown to stop automatically
   if ((trigger_time_ * shape_omega_) - ((lap_ + 1) * 2 * 3.14) > 0) {
     lap_ += 1;
-    pubLapCompleted(lap_);
+    pubTrajectoryInfo();
   }
 
   // Slowly speed up
   if (started_) {
     if (windup_ratio_ < 1) {
+      pubTrajectoryInfo();
       windup_ratio_ += 0.001;
       initializePrimitives(trajectory_type_);
 
@@ -258,11 +260,14 @@ void trajectoryPublisher::pubrefSetpointRawGlobal() {
   global_rawreferencePub_.publish(msg);
 }
 
-void trajectoryPublisher::pubLapCompleted(int lap) {
-  std_msgs::Int32 msg;
-
-  msg.data = lap;
-  lapCompletedPub_.publish(msg);
+void trajectoryPublisher::pubTrajectoryInfo() {
+  trajectory_publisher::TrajectoryInfo msg;
+  msg.header.stamp = ros::Time::now();
+  msg.header.frame_id = "map";
+  msg.lap = lap_;
+  msg.windup_ratio = windup_ratio_;
+  msg.velocity_scaler = velocity_scaler_;
+  trajectoryInfoPub.publish(msg);
 }
 
 void trajectoryPublisher::loopCallback(const ros::TimerEvent& event) {

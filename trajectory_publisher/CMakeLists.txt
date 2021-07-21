@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   mavros_msgs
   mavlink
   controller_msgs
+  message_generation
 )
 
 find_package(
@@ -21,9 +22,19 @@ generate_dynamic_reconfigure_options(
   cfg/TrajectoryPublisher.cfg
 )
 
+add_message_files(
+  FILES
+  TrajectoryInfo.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
+
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp rospy std_msgs nav_msgs geometry_msgs tf mav_planning_msgs controller_msgs mavros_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs nav_msgs geometry_msgs tf mav_planning_msgs controller_msgs mavros_msgs message_runtime
 )
 
 include_directories(

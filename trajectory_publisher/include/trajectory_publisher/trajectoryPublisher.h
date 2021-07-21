@@ -60,6 +60,7 @@
 #include "trajectory_publisher/shapetrajectory.h"
 #include "trajectory_publisher/trajectory.h"
 #include "trajectory_publisher/TrajectoryPublisherConfig.h"
+#include "trajectory_publisher/TrajectoryInfo.h"
 #include <dynamic_reconfigure/server.h>
 
 
@@ -77,7 +78,7 @@ class trajectoryPublisher {
   ros::Publisher flatreferencePub_;
   ros::Publisher rawreferencePub_;
   ros::Publisher global_rawreferencePub_;
-  ros::Publisher lapCompletedPub_;
+  ros::Publisher trajectoryInfoPub;
   std::vector<ros::Publisher> primitivePub_;
   ros::Subscriber motionselectorSub_;
   ros::Subscriber mavposeSub_;
@@ -122,7 +123,7 @@ class trajectoryPublisher {
   void pubflatrefState();
   void pubrefSetpointRaw();
   void pubrefSetpointRawGlobal();
-  void pubLapCompleted(int lap);
+  void pubTrajectoryInfo();
   void initializePrimitives(int type);
   void updatePrimitives();
   void loopCallback(const ros::TimerEvent& event);
