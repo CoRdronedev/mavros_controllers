@@ -100,8 +100,10 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle &nh, const ros::NodeHandle &n
   nh_private_.param<double>("Kv_x", Kvel_x_, 1.5);
   nh_private_.param<double>("Kv_y", Kvel_y_, 1.5);
   nh_private_.param<double>("Kv_z", Kvel_z_, 3.3);
+  nh_private_.param<double>("torque_test", torque_test_, 0);
   nh_private_.param<int>("posehistory_window", posehistory_window_, 200);
   nh_private_.param<double>("shape_radius", shape_radius_, 1.0);
+  nh_private_.param<double>("start_traj_y", start_traj_y_, 0.0);
   nh_private_.param<double>("init_pos_x", initTargetPos_x_, 0.0);
   nh_private_.param<double>("init_pos_y", initTargetPos_y_, 0.0);
   nh_private_.param<double>("init_pos_z", initTargetPos_z_, 1.0);
@@ -128,7 +130,13 @@ bool geometricCtrl::enableControlCallback(std_srvs::Trigger::Request &req, std_s
 {
   ROS_INFO_STREAM(" EnableControlCallback called");
   cmdloop_timer_.start();
-  node_state = MOVING_TO_START;
+  if (torque_test_ > 0) {
+    ROS_INFO("Running a torque test, continuing to mission execution");
+    node_state = MISSION_EXECUTION;
+  } else {
+    ROS_INFO("Running a flight test, continuing to start position");
+    node_state = MOVING_TO_START;
+  }
   res.success = true;
   res.message = "Enabled geometric controller.";
   return true;
@@ -249,8 +257,10 @@ void geometricCtrl::mavposeCallback(const geometry_msgs::PoseStamped &msg)
 
   if (node_state == MOVING_TO_START)
   {
-    if (abs(msg.pose.position.x - (initTargetPos_x_ + shape_radius_)) < 0.05 && abs(msg.pose.position.y - initTargetPos_y_) < 0.05)
+    if (abs(msg.pose.position.x - (initTargetPos_x_ + shape_radius_)) < 0.05
+     && abs(msg.pose.position.y - (initTargetPos_y_ + start_traj_y_)) < 0.05)
     {
+      // shape_radius_ = -shape_radius_;
       node_state = MISSION_EXECUTION;
       std_srvs::SetBool request;
       ros::service::call("/start", request);
@@ -285,7 +295,7 @@ void geometricCtrl::cmdloopCallback(const ros::TimerEvent &event)
   {
     geometry_msgs::PoseStamped positionMsg;
     positionMsg.pose.position.x = initTargetPos_x_ + shape_radius_;
-    positionMsg.pose.position.y = initTargetPos_y_;
+    positionMsg.pose.position.y = initTargetPos_y_ + start_traj_y_;
     positionMsg.pose.position.z = initTargetPos_z_;
     target_pose_pub_.publish(positionMsg);
     break;
@@ -336,14 +346,22 @@ void geometricCtrl::pubRateCommands(const Eigen::Vector4d &cmd, const Eigen::Vec
 
   msg.header.stamp = ros::Time::now();
   msg.header.frame_id = "map";
-  msg.body_rate.x = cmd(0);
-  msg.body_rate.y = cmd(1);
-  msg.body_rate.z = cmd(2);
+  // Run torque test instead of that parameter is set
+  if (torque_test_ > 0) {
+    msg.body_rate.x = 0;
+    msg.body_rate.y = 0;
+    msg.body_rate.z = torque_test_;
+  } else {
+    msg.body_rate.x = cmd(0);
+    msg.body_rate.y = cmd(1);
+    msg.body_rate.z = cmd(2);
+  }
+  
   msg.type_mask = 128; // Ignore orientation messages
-  msg.orientation.w = target_attitude(0);
-  msg.orientation.x = target_attitude(1);
-  msg.orientation.y = target_attitude(2);
-  msg.orientation.z = target_attitude(3);
+  // msg.orientation.w = target_attitude(0);
+  // msg.orientation.x = target_attitude(1);
+  // msg.orientation.y = target_attitude(2);
+  // msg.orientation.z = target_attitude(3);
   msg.thrust = cmd(3);
 
   angularVelPub_.publish(msg);
@@ -589,6 +607,10 @@ void geometricCtrl::dynamicReconfigureCallback(geometric_controller::GeometricCo
   {
     Kvel_z_ = config.Kv_z;
     ROS_INFO("Reconfigure request : Kv_z  = %.2f  ", config.Kv_z);
+  } else if (torque_test_ != config.torque_test)
+  {
+      torque_test_ = config.torque_test;
+      ROS_INFO("Reconfigure request : torque_test  = %.2f  ", config.torque_test);
   }
 
   Kpos_ << -Kpos_x_, -Kpos_y_, -Kpos_z_;

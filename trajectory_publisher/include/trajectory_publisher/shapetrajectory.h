@@ -40,11 +40,14 @@
 #define TRAJECTORY_PUBLISHER_SHAPETRAJECTORY_H
 
 #include "trajectory_publisher/trajectory.h"
+#include <cmath>
 
 #define TRAJ_ZERO 0
 #define TRAJ_CIRCLE 1
 #define TRAJ_LAMNISCATE 2
 #define TRAJ_STATIONARY 3
+#define TRAJ_STRAIGHT 4
+#define TRAJ_DIAGONAL 5
 
 class shapetrajectory : public trajectory {
  private:

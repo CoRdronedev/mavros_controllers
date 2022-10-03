@@ -94,6 +94,16 @@ Eigen::Vector3d shapetrajectory::getPosition(double time) {
 
       position = traj_origin_;
       break;
+
+    case TRAJ_STRAIGHT:
+        theta = traj_omega_ * time;
+        position << std::cos(theta) * traj_radial_[0], 0.0, 1.0;
+        break;
+
+    case TRAJ_DIAGONAL:
+        theta = traj_omega_ * time;
+        position << std::cos(theta) * traj_radial_[0], std::cos(theta) * traj_radial_[0], 1.0;
+        break;
   }
   return position;
 }

@@ -72,7 +72,9 @@ trajectoryPublisher::trajectoryPublisher(const ros::NodeHandle& nh, const ros::N
   nh_private_.param<int>("trajectory_type", trajectory_type_, 0);
   nh_private_.param<int>("number_of_primitives", num_primitives_, 7);
   nh_private_.param<int>("reference_type", pubreference_type_, 2);
-  nh_private_.param<double>("velocity_scaler", velocity_scaler_, 1.0);
+  nh_private_.param<double>("velocity_scaler", velocity_scaler_, 2.1);
+  nh_private_.param<double>("windup_ratio", windup_ratio_, 0);
+
 
   inputs_.resize(num_primitives_);
 
@@ -128,7 +130,9 @@ void trajectoryPublisher::updateReference() {
   time_delta = (curr_time_ - prev_time_) * (windup_ratio_ * velocity_scaler_); // Scale time delta based on windup speed
   prev_time_ = curr_time_;
 
-  prev_simulated_time_ += time_delta;
+  if (started_ ) {
+        prev_simulated_time_ += time_delta;
+  }
   
   trigger_time_ = prev_simulated_time_.toSec();
 

@@ -20,6 +20,7 @@
           <param name="Kpos_x" value="8.0" />
           <param name="Kpos_y" value="8.0" />
           <param name="Kpos_z" value="10.0" />
+          <param name="torque_test" value="0.0" />
   </node>
 
   <node pkg="trajectory_publisher" type="trajectory_publisher" name="trajectory_publisher" output="screen">
