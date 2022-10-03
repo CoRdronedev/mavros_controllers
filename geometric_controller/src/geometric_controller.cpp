@@ -65,7 +65,7 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle &nh, const ros::NodeHandle &n
                               ros::TransportHints().tcpNoDelay());
   mavtwistSub_ = nh_.subscribe("mavros/local_position/velocity_local", 1, &geometricCtrl::mavtwistCallback, this,
                                ros::TransportHints().tcpNoDelay());
-  lapCompletedSub_ = nh_.subscribe("trajectory_publisher/lap_completed", 1, &geometricCtrl::lapCompletedCallback, this,
+  lapCompletedSub_ = nh_.subscribe("trajectory_publisher/info", 1, &geometricCtrl::lapCompletedCallback, this,
                                    ros::TransportHints().tcpNoDelay());
   cmdloop_timer_ = nh_.createTimer(ros::Duration(0.01), &geometricCtrl::cmdloopCallback,
                                    this); // Define timer for constant loop rate
@@ -274,9 +274,9 @@ void geometricCtrl::mavtwistCallback(const geometry_msgs::TwistStamped &msg)
   mavRate_ = toEigen(msg.twist.angular);
 }
 
-void geometricCtrl::lapCompletedCallback(const std_msgs::Int32 &msg)
+void geometricCtrl::lapCompletedCallback(const trajectory_publisher::TrajectoryInfo &msg)
 {
-  int lap = msg.data;
+  int lap = msg.lap;
 
   if (lap == max_laps_)
   {

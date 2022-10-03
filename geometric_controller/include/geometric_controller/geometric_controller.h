@@ -70,6 +70,7 @@
 #include <std_srvs/Trigger.h>
 #include <trajectory_msgs/MultiDOFJointTrajectory.h>
 #include <trajectory_msgs/MultiDOFJointTrajectoryPoint.h>
+#include "trajectory_publisher/TrajectoryInfo.h"
 
 #include "geometric_controller/common.h"
 
@@ -160,7 +161,7 @@ private:
   void targetCallback(const geometry_msgs::TwistStamped &msg);
   void flattargetCallback(const controller_msgs::FlatTarget &msg);
   void yawtargetCallback(const std_msgs::Float32 &msg);
-  void lapCompletedCallback(const std_msgs::Int32 &msg);
+  void lapCompletedCallback(const trajectory_publisher::TrajectoryInfo &msg);
   void multiDOFJointCallback(const trajectory_msgs::MultiDOFJointTrajectory &msg);
   void keyboardCallback(const geometry_msgs::Twist &msg);
   void cmdloopCallback(const ros::TimerEvent &event);

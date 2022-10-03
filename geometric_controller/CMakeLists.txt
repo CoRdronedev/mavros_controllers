@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   mavros_msgs
   mavlink
   controller_msgs
+  trajectory_publisher
 )
 
 find_package(
