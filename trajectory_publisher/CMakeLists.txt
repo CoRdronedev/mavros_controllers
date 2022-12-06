@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   mavlink
   controller_msgs
   message_generation
+  libmavconn
 )
 
 find_package(
