@@ -18,10 +18,6 @@ find_package(
   Eigen3 REQUIRED
 )
 
-generate_dynamic_reconfigure_options(
-  cfg/TrajectoryPublisher.cfg
-)
-
 add_message_files(
   FILES
   TrajectoryInfo.msg
@@ -30,6 +26,10 @@ add_message_files(
 generate_messages(
   DEPENDENCIES
   std_msgs
+)
+
+generate_dynamic_reconfigure_options(
+  cfg/TrajectoryPublisher.cfg
 )
 
 catkin_package(
@@ -54,7 +54,7 @@ add_executable(trajectory_publisher
         src/polynomialtrajectory.cpp
         src/shapetrajectory.cpp
 )
-add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 ##########
 # EXPORT #
